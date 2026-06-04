@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vent">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>Vent App</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --surface: #16213e;
+      --card: #0f3460;
+      --accent: #e94560;
+      --gold: #f5c518;
+      --text: #eee;
+      --text-muted: #999;
+      --safe-bottom: env(safe-area-inset-bottom, 16px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── LOCK SCREEN WIDGET FLOW ──────────────────── */
+    /* When opened via lock screen widget deep link,
+       the body gets class 'quick-vent' and jumps
+       straight to recording mode. */
+
+    body.quick-vent #main-menu { display: none; }
+    body.quick-vent #conversation { display: none; }
+    body.quick-vent #recording-mode {
+      display: flex;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ── Header ───────────────────────────────────── */
+    header {
+      padding: 16px 20px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+
+    .header-actions { display: flex; gap: 8px; }
+
+    .icon-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--card);
+      border: none;
+      color: var(--text);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .icon-btn:hover, .icon-btn:active { background: var(--accent); }
+    .icon-btn.active { background: var(--accent); }
+
+    /* ── Main Content ─────────────────────────────── */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: 120px;
+    }
+
+    /* ── Recording Mode (lock screen widget target) ─ */
+    #recording-mode {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      gap: 24px;
+    }
+
+    .record-ring {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .record-ring.listening {
+      border-color: var(--gold);
+      box-shadow: 0 0 40px rgba(245, 197, 24, 0.3);
+      animation: pulse 2s infinite;
+    }
+    .record-ring.processing {
+      border-color: #4fc3f7;
+      box-shadow: 0 0 30px rgba(79, 195, 247, 0.3);
+      animation: spin 1.5s linear infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(245, 197, 24, 0.2); }
+      50% { box-shadow: 0 0 50px rgba(245, 197, 24, 0.5); }
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .record-icon {
+      font-size: 48px;
+      transition: transform 0.3s;
+    }
+    .record-ring.listening .record-icon { transform: scale(1.2); }
+
+    .record-hint {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .record-hint strong { color: var(--gold); }
+
+    .listening-status {
+      font-size: 16px;
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .processing-status {
+      font-size: 16px;
+      color: #4fc3f7;
+      font-weight: 600;
+    }
+
+    /* ── Conversation ─────────────────────────────── */
+    #conversation { display: none; }
+    body.show-conversation #conversation { display: flex; }
+
+    #conversation {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      line-height: 1.5;
+      font-size: 15px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } }
+
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.ai {
+      align-self: flex-start;
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-bottom-left-radius: 4px;
+    }
+    .msg .mood-tag {
+      font-size: 11px;
+      opacity: 0.6;
+      margin-bottom: 4px;
+    }
+    .msg .meta {
+      font-size: 11px;
+      opacity: 0.4;
+      margin-top: 6px;
+    }
+    .msg.offline { border: 1px dashed rgba(255,255,255,0.15); }
+
+    /* ── Input Bar ────────────────────────────────── */
+    #input-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px calc(12px + var(--safe-bottom));
+      background: var(--surface);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    #input-bar.hidden { display: none; }
+
+    #text-input {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 12px 18px;
+      color: var(--text);
+      font-size: 16px;
+      resize: none;
+      max-height: 120px;
+      outline: none;
+      font-family: inherit;
+    }
+    #text-input::placeholder { color: var(--text-muted); }
+    #text-input:focus { border-color: var(--accent); }
+
+    .send-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mic-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      font-size: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mic-btn.active { background: var(--accent); border-color: var(--accent); }
+
+    /* ── Personality Picker ───────────────────────── */
+    #personality-picker {
+      display: flex;
+      gap: 8px;
+      padding: 12px 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      flex-shrink: 0;
+    }
+    #personality-picker::-webkit-scrollbar { display: none; }
+
+    .persona-chip {
+      padding: 8px 14px;
+      border-radius: 20px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted);
+      font-size: 13px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .persona-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Model Selector ───────────────────────────── */
+    #model-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    #model-select {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    /* ── TTS Toggle ───────────────────────────────── */
+    .tts-indicator {
+      font-size: 11px;
+      color: var(--gold);
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+    .tts-indicator.on { display: flex; }
+
+    /* ── Empty State ──────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .big-icon { font-size: 64px; margin-bottom: 16px; }
+    .empty-state h2 { font-size: 20px; margin-bottom: 8px; color: var(--text); }
+    .empty-state p { font-size: 14px; line-height: 1.6; }
+
+    /* ── Connection Status ────────────────────────── */
+    #connection-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: var(--card);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4caf50;
+    }
+    .status-dot.disconnected { background: #f44336; }
+    .status-dot.checking { background: #ff9800; animation: pulse 1s infinite; }
+
+    /* ── Notification Prompt (after lock-screen vent) ─ */
+    .notification-prompt {
+      text-align: center;
+      padding: 40px 20px;
+      animation: fadeIn 0.5s ease;
+    }
+    .notification-prompt .icon { font-size: 48px; margin-bottom: 16px; }
+    .notification-prompt h2 { margin-bottom: 8px; }
+    .notification-prompt p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+    .notification-prompt button {
+      padding: 14px 32px;
+      border-radius: 24px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ────────────────────────────────────── -->
+  <header>
+    <div class="logo">Vent<span>.</span></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div id="connection-status">
+        <span class="status-dot checking" id="status-dot"></span>
+        <span id="status-text">Checking...</span>
+      </div>
+      <button class="icon-btn" id="tts-toggle" title="Text-to-Speech">🔊</button>
+    </div>
+  </header>
+
+  <!-- ── MODEL BAR ─────────────────────────────────── -->
+  <div style="padding: 8px 16px; display:flex; gap:16px; align-items:center;">
+    <div id="model-bar">
+      <span>🧠</span>
+      <select id="model-select"><option>phi3</option></select>
+    </div>
+    <span class="tts-indicator" id="tts-indicator">🔊 reading aloud</span>
+  </div>
+
+  <!-- ── PERSONALITY PICKER ────────────────────────── -->
+  <div id="personality-picker"></div>
+
+  <!-- ── MAIN ──────────────────────────────────────── -->
+  <main>
+
+    <!-- Recording Mode (lock screen widget target) -->
+    <div id="recording-mode">
+      <div class="record-ring" id="record-btn">
+        <span class="record-icon">🎙️</span>
+      </div>
+      <div class="record-hint" id="record-hint">
+        Tap to <strong>start</strong> venting<br>
+        <span style="font-size:12px;opacity:0.6;">Say "done" or "that's it" to finish</span>
+      </div>
+      <div class="listening-status" id="listening-status" style="display:none;">🎧 Listening...</div>
+      <div class="processing-status" id="processing-status" style="display:none;">✨ Processing...</div>
+      <button id="cancel-record" style="display:none;margin-top:16px;background:var(--card);border:none;color:var(--text-muted);padding:8px 20px;border-radius:16px;cursor:pointer;font-size:14px;">Cancel</button>
+    </div>
+
+    <!-- Conversation -->
+    <div id="conversation">
+      <div class="empty-state" id="empty-state">
+        <div class="big-icon">💛</div>
+        <h2>Vent App</h2>
+        <p>Everything you say stays here.<br>No judgment. No cloud. No leaks.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── INPUT BAR ─────────────────────────────────── -->
+  <div id="input-bar">
+    <button class="mic-btn" id="mic-btn" title="Voice input">🎤</button>
+    <textarea id="text-input" rows="1" placeholder="Type or tap mic to vent..."></textarea>
+    <button class="send-btn" id="send-btn">→</button>
+  </div>
+
+  <!-- ── SCRIPTS ───────────────────────────────────── -->
+  <script src="vent-engine.js"></script>
+  <script>
+  // ── DOM Refs ─────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const recordingMode = $('recording-mode');
+  const conversation = $('conversation');
+  const emptyState = $('empty-state');
+  const recordBtn = $('record-btn');
+  const recordHint = $('record-hint');
+  const listeningStatus = $('listening-status');
+  const processingStatus = $('processing-status');
+  const cancelRecord = $('cancel-record');
+  const textInput = $('text-input');
+  const sendBtn = $('send-btn');
+  const micBtn = $('mic-btn');
+  const personalityPicker = $('personality-picker');
+  const modelSelect = $('model-select');
+  const statusDot = $('status-dot');
+  const statusText = $('status-text');
+  const ttsToggle = $('tts-toggle');
+  const ttsIndicator = $('tts-indicator');
+  const inputBar = $('input-bar');
+
+  let isRecording = false;
+  let recognition = null;
+  let ttsEnabled = false;
+  let currentTranscript = '';
+
+  // ── INIT ──────────────────────────────────────────
+  async function init() {
+    await VentEngine.init();
+    VentEngine.loadCustomPrompt();
+
+    // Populate personality chips
+    renderPersonalities();
+    // Populate model dropdown
+    renderModels();
+    // Check connection
+    checkConnection();
+    // Load TTS pref
+    ttsEnabled = localStorage.getItem('vent-tts') === 'true';
+    updateTtsUI();
+    // Check for lock screen widget deep link
+    checkDeepLink();
+    // Restore conversation if exists
+    restoreConversation();
+  }
+
+  // ── DEEP LINK: Lock Screen Widget Flow ────────────
+  function checkDeepLink() {
+    const params = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
+
+    // ?mode=quick-vent  OR  #quick-vent
+    if (params.get('mode') === 'quick-vent' || hash === '#quick-vent') {
+      document.body.classList.add('quick-vent');
+      inputBar.classList.add('hidden');
+      startRecordingMode();
+    }
+  }
+
+  function startRecordingMode() {
+    recordingMode.style.display = 'flex';
+    conversation.style.display = 'none';
+    isRecording = false;
+    recordBtn.classList.remove('listening', 'processing');
+    recordingHint();
+  }
+
+  function recordingHint() {
+    recordHint.innerHTML = `Tap to <strong>start</strong> venting<br><span style="font-size:12px;opacity:0.6;">Say "done" or "that's it" to finish</span>`;
+  }
+
+  // ── Record Button ─────────────────────────────────
+  recordBtn.addEventListener('click', () => {
+    if (recordBtn.classList.contains('processing')) return;
+
+    if (!isRecording) {
+      startListening();
+    } else {
+      stopListening();
+    }
+  });
+
+  function startListening() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition not available in this browser. Use Safari or Chrome.');
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    currentTranscript = '';
+    isRecording = true;
+    recordBtn.classList.add('listening');
+    listeningStatus.style.display = 'block';
+    processingStatus.style.display = 'none';
+    cancelRecord.style.display = 'block';
+    recordHint.style.display = 'none';
+
+    recognition.onresult = (event) => {
+      currentTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        currentTranscript += event.results[i][0].transcript;
+      }
+      listeningStatus.textContent = `🎧 ${currentTranscript || 'Listening...'}`;
+
+      // Auto-detect "done" or "that's it"
+      const lower = currentTranscript.toLowerCase().trim();
+      if (lower.endsWith('done') || lower.endsWith("that's it") || lower.endsWith('thats it')) {
+        const cleaned = lower.replace(/\s*(done|that'?s it)\s*$/i, '').trim();
+        if (cleaned) {
+          currentTranscript = cleaned;
+        }
+        stopListening();
+      }
+    };
+
+    recognition.onerror = (e) => {
+      console.error('Speech error:', e);
+      if (e.error === 'no-speech') {
+        listeningStatus.textContent = '🎧 Still listening...';
+      } else {
+        stopListening();
+        recordingHint();
+        listeningStatus.style.display = 'none';
+        cancelRecord.style.display = 'none';
+        recordHint.style.display = 'block';
+      }
+    };
+
+    recognition.onend = () => {
+      if (isRecording) {
+        // Restart if user hasn't explicitly stopped
+        try { recognition.start(); } catch(e) {}
+      }
+    };
+
+    recognition.start();
+  }
+
+  function stopListening() {
+    isRecording = false;
+    if (recognition) {
+      recognition.onend = null;
+      recognition.stop();
+    }
+    recordBtn.classList.remove('listening');
+    recordBtn.classList.add('processing');
+    listeningStatus.style.display = 'none';
+    processingStatus.style.display = 'block';
+    cancelRecord.style.display = 'none';
+
+    if (currentTranscript.trim()) {
+      processMessage(currentTranscript.trim());
+    } else {
+      resetRecordUI();
+    }
+  }
+
+  cancelRecord.addEventListener('click', () => {
+    isRecording = false;
+    if (recognition) {
+      recognition.onend = null;
+      recognition.stop();
+    }
+    resetRecordUI();
+  });
+
+  function resetRecordUI() {
+    recordBtn.classList.remove('listening', 'processing');
+    listeningStatus.style.display = 'none';
+    processingStatus.style.display = 'none';
+    cancelRecord.style.display = 'none';
+    recordHint.style.display = 'block';
+    recordingHint();
+    currentTranscript = '';
+  }
+
+  // ── Process Message ───────────────────────────────
+  async function processMessage(text) {
+    if (document.body.classList.contains('quick-vent')) {
+      // Lock screen widget flow — exit recording mode, show conversation
+      document.body.classList.remove('quick-vent');
+      inputBar.classList.remove('hidden');
+      recordingMode.style.display = 'none';
+    }
+
+    emptyState.style.display = 'none';
+    conversation.style.display = 'flex';
+
+    // Show user message
+    addMessage(text, 'user');
+
+    // Get AI response
+    const result = await VentEngine.chat(text);
+
+    // Show AI message
+    addMessage(result.reply, 'ai', result.mood, result.offline);
+
+    // TTS if enabled
+    if (ttsEnabled) speakText(result.reply);
+
+    resetRecordUI();
+
+    // If this was from lock screen widget, trigger notification flow
+    if (document.body.dataset.fromWidget === 'true') {
+      document.body.dataset.fromWidget = 'false';
+      triggerNotificationFlow(result);
+    }
+  }
+
+  // ── Add Message to UI ─────────────────────────────
+  function addMessage(text, role, mood, offline) {
+    const div = document.createElement('div');
+    div.className = `msg ${role}${offline ? ' offline' : ''}`;
+
+    let html = '';
+    if (mood && role === 'ai') {
+      html += `<div class="mood-tag">${mood}</div>`;
+    }
+    html += text;
+    if (offline) {
+      html += `<div class="meta">⚠️ offline mode</div>`;
+    }
+
+    div.innerHTML = html;
+    conversation.appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ── Restore Conversation ──────────────────────────
+  function restoreConversation() {
+    if (VentEngine.memories.length > 0) {
+      emptyState.style.display = 'none';
+      conversation.style.display = 'flex';
+      for (const msg of VentEngine.memories) {
+        addMessage(msg.content, msg.role);
+      }
+    }
+  }
+
+  // ── Send via Input ────────────────────────────────
+  sendBtn.addEventListener('click', () => {
+    const text = textInput.value.trim();
+    if (!text) return;
+    textInput.value = '';
+    textInput.style.height = 'auto';
+    processMessage(text);
+  });
+
+  textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendBtn.click();
+    }
+  });
+
+  // Auto-resize textarea
+  textInput.addEventListener('input', () => {
+    textInput.style.height = 'auto';
+    textInput.style.height = Math.min(textInput.scrollHeight, 120) + 'px';
+  });
+
+  // ── Mic Button ────────────────────────────────────
+  micBtn.addEventListener('click', () => {
+    if (isRecording) {
+      stopListening();
+      micBtn.classList.remove('active');
+    } else {
+      recordingMode.style.display = 'flex';
+      conversation.style.display = 'none';
+      inputBar.classList.add('hidden');
+      startListening();
+      micBtn.classList.add('active');
+    }
+  });
+
+  // ── Notification Flow (post lock-screen vent) ─────
+  function triggerNotificationFlow(result) {
+    // In a real iOS app, this would use UNUserNotificationCenter
+    // For the PWA, we simulate with an in-app notification prompt
+    const prompt = document.createElement('div');
+    prompt.className = 'notification-prompt';
+    prompt.innerHTML = `
+      <div class="icon">🔔</div>
+      <h2>Your vent was heard 💛</h2>
+      <p>${result.reply.slice(0, 80)}...</p>
+      <button onclick="this.parentElement.remove(); showFullApp();">Open Full App</button>
+    `;
+    conversation.appendChild(prompt);
+    prompt.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function showFullApp() {
+    inputBar.classList.remove('hidden');
+    recordingMode.style.display = 'none';
+    conversation.style.display = 'flex';
+  }
+
+  // ── Notifications API ─────────────────────────────
+  async function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      const granted = await Notification.requestPermission();
+      if (granted === 'granted') {
+        new Notification('Vent App', {
+          body: 'Notifications enabled. You\'ll get a tap-to-open ping after each vent session.',
+          icon: 'icon-192.png'
+        });
+      }
+    }
+  }
+
+  function sendVentNotification(summary) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Vent App 💛', {
+        body: summary || 'Your vent was heard. Tap to open.',
+        icon: 'icon-192.png',
+        tag: 'vent-complete',
+        requireInteraction: true
+      });
+    }
+  }
+
+  // ── TTS ───────────────────────────────────────────
+  ttsToggle.addEventListener('click', () => {
+    ttsEnabled = !ttsEnabled;
+    localStorage.setItem('vent-tts', ttsEnabled);
+    updateTtsUI();
+  });
+
+  function updateTtsUI() {
+    ttsToggle.classList.toggle('active', ttsEnabled);
+    ttsIndicator.classList.toggle('on', ttsEnabled);
+  }
+
+  function speakText(text) {
+    if (!ttsEnabled) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    speechSynthesis.speak(utterance);
+  }
+
+  // ── Personalities ─────────────────────────────────
+  function renderPersonalities() {
+    personalityPicker.innerHTML = '';
+    const active = VentEngine.currentPersonality;
+    for (const [key, p] of Object.entries(VentEngine.personalities)) {
+      const chip = document.createElement('span');
+      chip.className = 'persona-chip' + (key === active ? ' active' : '');
+      chip.textContent = p.emoji + ' ' + p.name;
+      chip.addEventListener('click', () => {
+        VentEngine.setPersonality(key);
+        renderPersonalities();
+      });
+      personalityPicker.appendChild(chip);
+    }
+  }
+
+  // ── Models ────────────────────────────────────────
+  function renderModels() {
+    modelSelect.innerHTML = '';
+    const models = VentEngine.availableModels.length > 0
+      ? VentEngine.availableModels
+      : ['phi3', 'qwen2.5-coder:7b', 'deepseek-coder-v2:16b', 'codegemma:2b'];
+    for (const m of models) {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      if (m === VentEngine.model) opt.selected = true;
+      modelSelect.appendChild(opt);
+    }
+    modelSelect.addEventListener('change', () => {
+      VentEngine.model = modelSelect.value;
+      localStorage.setItem('vent-model', modelSelect.value);
+    });
+    const saved = localStorage.getItem('vent-model');
+    if (saved) {
+      VentEngine.model = saved;
+      modelSelect.value = saved;
+    }
+  }
+
+  // ── Connection Check ──────────────────────────────
+  async function checkConnection() {
+    statusDot.className = 'status-dot checking';
+    statusText.textContent = 'Checking...';
+    try {
+      const res = await fetch(`${VentEngine.ollamaUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        statusDot.className = 'status-dot';
+        statusText.textContent = 'Connected';
+        renderModels();
+      } else {
+        throw new Error();
+      }
+    } catch (e) {
+      statusDot.className = 'status-dot disconnected';
+      statusText.textContent = 'Offline';
+    }
+  }
+
+  // ── SW Registration ───────────────────────────────
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // ── Boot ──────────────────────────────────────────
+  init();
+  requestNotificationPermission();
+  </script>
+</body>
+</html>

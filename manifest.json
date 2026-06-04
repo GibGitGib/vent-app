@@ -1,0 +1,24 @@
+{
+  "name": "Vent App",
+  "short_name": "Vent",
+  "description": "Local AI that listens without judgment. Everything stays on your phone.",
+  "start_url": "/vent-app/index.html",
+  "scope": "/vent-app/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Vent",
+      "short_name": "Vent",
+      "description": "Start venting immediately",
+      "url": "/vent-app/index.html?mode=quick-vent",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
