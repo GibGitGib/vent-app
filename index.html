@@ -408,6 +408,30 @@
   <!-- ── MAIN ──────────────────────────────────────── -->
   <main>
 
+    <!-- Disclaimer Modal (first visit) -->
+    <div id="disclaimer" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px;">
+      <div style="background:var(--surface); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:24px; max-width:380px; text-align:center;">
+        <div style="font-size:40px; margin-bottom:12px;">💛</div>
+        <h2 style="margin-bottom:8px;">Welcome to Vent App</h2>
+        <p style="color:var(--text-muted); font-size:14px; line-height:1.6; margin-bottom:16px;">
+          Vent App is an <strong>AI companion for entertainment and emotional expression.</strong><br><br>
+          It is <strong>not</strong> a therapist, counselor, or medical service. If you're in crisis, help is available:<br>
+          <strong>988</strong> — Suicide & Crisis Lifeline<br>
+          <strong>Crisis Text Line:</strong> text HOME to 741741
+        </p>
+        <button id="disclaimer-ok" style="padding:12px 32px; border-radius:24px; background:var(--accent); color:#fff; border:none; font-size:15px; font-weight:600; cursor:pointer;">I Understand</button>
+      </div>
+    </div>
+
+    <!-- Crisis Banner -->
+    <div id="crisis-banner" style="display:none; background:rgba(248,81,73,0.12); border:1px solid rgba(248,81,73,0.25); border-radius:12px; padding:14px; margin-bottom:12px; text-align:center; animation:fadeIn 0.4s ease;">
+      <div style="font-size:13px; line-height:1.6;">
+        ⚠️ <strong>You sound like you're going through a lot right now.</strong><br>
+        If you need support: <strong>988</strong> (Suicide & Crisis Lifeline)<br>
+        <strong>Crisis Text Line:</strong> text HOME to 741741
+      </div>
+    </div>
+
     <!-- Recording Mode (lock screen widget target) -->
     <div id="recording-mode">
       <div class="record-ring" id="record-btn">
@@ -442,6 +466,7 @@
 
   <!-- ── SCRIPTS ───────────────────────────────────── -->
   <script src="vent-engine.js"></script>
+  <script src="../voice-analyzer/voice-analyzer.js"></script>
   <script>
   // ── DOM Refs ─────────────────────────────────────
   const $ = id => document.getElementById(id);
@@ -489,6 +514,9 @@
     restoreConversation();
     // Sync backend UI after detection
     syncBackendUI();
+    // Init voice analyzer + disclaimer
+    initVoiceAnalyzer();
+    showDisclaimer();
   }
 
   // ── DEEP LINK: Lock Screen Widget Flow ────────────
@@ -867,6 +895,40 @@
         opt.textContent = opt.textContent.replace(/^[📱🖥️🔧]+\s*/, '') + ' ✅';
       }
     }
+  }
+
+  // ── Voice Analyzer Integration ─────────────────────
+  let voiceAnalyzer = null;
+
+  function initVoiceAnalyzer() {
+    if (typeof VoiceAnalyzer === 'undefined') {
+      console.warn('VoiceAnalyzer SDK not loaded');
+      return;
+    }
+    voiceAnalyzer = new VoiceAnalyzer({
+      sensitivity: 'medium',
+      onEmotion: ({ state, confidence }) => {
+        // Update emotion indicator if we add one later
+        console.log('Voice emotion:', state, Math.round(confidence * 100) + '%');
+      },
+      onCrisis: () => {
+        document.getElementById('crisis-banner').style.display = 'block';
+        // Auto-hide after 15 seconds
+        setTimeout(() => {
+          document.getElementById('crisis-banner').style.display = 'none';
+        }, 15000);
+      }
+    });
+  }
+
+  // ── Disclaimer Modal ───────────────────────────────
+  function showDisclaimer() {
+    if (localStorage.getItem('vent-disclaimer-accepted')) return;
+    document.getElementById('disclaimer').style.display = 'flex';
+    document.getElementById('disclaimer-ok').addEventListener('click', () => {
+      document.getElementById('disclaimer').style.display = 'none';
+      localStorage.setItem('vent-disclaimer-accepted', 'true');
+    });
   }
 
   // ── SW Registration ───────────────────────────────
