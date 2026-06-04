@@ -385,10 +385,18 @@
   </header>
 
   <!-- ── MODEL BAR ─────────────────────────────────── -->
-  <div style="padding: 8px 16px; display:flex; gap:16px; align-items:center;">
+  <div style="padding: 8px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
     <div id="model-bar">
       <span>🧠</span>
       <select id="model-select"><option>phi3</option></select>
+    </div>
+    <div id="backend-bar">
+      <span>📡</span>
+      <select id="backend-select">
+        <option value="ollama">🖥️ Ollama</option>
+        <option value="pocketpal">📱 PocketPal</option>
+        <option value="custom">🔧 Custom</option>
+      </select>
     </div>
     <span class="tts-indicator" id="tts-indicator">🔊 reading aloud</span>
   </div>
@@ -478,6 +486,8 @@
     checkDeepLink();
     // Restore conversation if exists
     restoreConversation();
+    // Sync backend UI after detection
+    syncBackendUI();
   }
 
   // ── DEEP LINK: Lock Screen Widget Flow ────────────
@@ -824,11 +834,12 @@
   async function checkConnection() {
     statusDot.className = 'status-dot checking';
     statusText.textContent = 'Checking...';
+    const cfg = VentEngine.getBackend();
     try {
-      const res = await fetch(`${VentEngine.ollamaUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(`${cfg.baseUrl}${cfg.modelsPath}`, { signal: AbortSignal.timeout(3000) });
       if (res.ok) {
         statusDot.className = 'status-dot';
-        statusText.textContent = 'Connected';
+        statusText.textContent = cfg.name;
         renderModels();
       } else {
         throw new Error();
@@ -836,6 +847,24 @@
     } catch (e) {
       statusDot.className = 'status-dot disconnected';
       statusText.textContent = 'Offline';
+    }
+  }
+
+  // ── Backend Selector ───────────────────────────────
+  const backendSelect = document.getElementById('backend-select');
+  backendSelect.addEventListener('change', () => {
+    VentEngine.setBackend(backendSelect.value);
+    checkConnection();
+  });
+
+  // Sync dropdown to detected state after init
+  function syncBackendUI() {
+    backendSelect.value = VentEngine.activeBackend;
+    // Highlight detected backends
+    for (const opt of backendSelect.options) {
+      if (VentEngine.availableBackends.includes(opt.value)) {
+        opt.textContent = opt.textContent.replace(/^[📱🖥️🔧]+\s*/, '') + ' ✅';
+      }
     }
   }
 

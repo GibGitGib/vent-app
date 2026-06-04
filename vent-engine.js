@@ -1,12 +1,41 @@
 /**
  * Vent Engine — Local AI that listens without judgment.
- * Connects to Ollama for 100% private, on-device processing.
- * Nothing leaves your phone.
+ * Supports multiple backends: Ollama (desktop), PocketPal/llama.cpp (phone).
+ * 100% private, on-device processing. Nothing leaves your device.
  */
 
 const VentEngine = {
-  // ── Config ────────────────────────────────────────────
-  ollamaUrl: 'http://127.0.0.1:11434',
+  // ── Backend Config ──────────────────────────────────────
+  backends: {
+    ollama: {
+      name: '🖥️ Ollama (Desktop)',
+      baseUrl: 'http://127.0.0.1:11434',
+      modelsPath: '/api/tags',
+      modelsKey: 'models',
+      modelsMap: (m) => m.name,
+      chatPath: '/v1/chat/completions',
+      chatFormat: 'openai'  // Ollama v1 endpoint is OpenAI-compatible
+    },
+    pocketpal: {
+      name: '📱 PocketPal (Phone)',
+      baseUrl: 'http://127.0.0.1:8080',
+      modelsPath: '/v1/models',
+      modelsKey: 'data',
+      modelsMap: (m) => m.id,
+      chatPath: '/v1/chat/completions',
+      chatFormat: 'openai'
+    },
+    custom: {
+      name: '🔧 Custom',
+      baseUrl: 'http://127.0.0.1:8080',
+      modelsPath: '/v1/models',
+      modelsKey: 'data',
+      modelsMap: (m) => m.id,
+      chatPath: '/v1/chat/completions',
+      chatFormat: 'openai'
+    }
+  },
+  activeBackend: 'ollama',
   model: 'phi3',
   availableModels: [],
   currentPersonality: 'best-friend',
@@ -81,21 +110,66 @@ const VentEngine = {
   // ── Init ──────────────────────────────────────────────
   async init() {
     this.loadMemories();
-    await this.fetchModels();
+    this.activeBackend = localStorage.getItem('vent-backend') || 'ollama';
+    await this.detectBackends();
     return this;
   },
 
-  // ── Ollama Models ─────────────────────────────────────
+  // ── Backend Detection ─────────────────────────────────
+  async detectBackends() {
+    this.availableBackends = [];
+    for (const [key, cfg] of Object.entries(this.backends)) {
+      if (key === 'custom') continue; // skip auto-detect for custom
+      try {
+        const res = await fetch(`${cfg.baseUrl}${cfg.modelsPath}`, {
+          signal: AbortSignal.timeout(3000)
+        });
+        if (res.ok) {
+          this.availableBackends.push(key);
+        }
+      } catch (e) {
+        // Backend not available
+      }
+    }
+    // If active backend is unavailable, switch to first available
+    if (this.availableBackends.length > 0 && !this.availableBackends.includes(this.activeBackend)) {
+      this.activeBackend = this.availableBackends[0];
+    }
+    // If nothing detected, keep current backend (will use fallback)
+    if (this.availableBackends.length === 0) {
+      this.availableBackends = [this.activeBackend];
+    }
+    await this.fetchModels();
+    return this.availableBackends;
+  },
+
+  setBackend(key) {
+    if (this.backends[key]) {
+      this.activeBackend = key;
+      localStorage.setItem('vent-backend', key);
+      this.fetchModels();
+    }
+  },
+
+  getBackend() {
+    return this.backends[this.activeBackend];
+  },
+
+  // ── Models ────────────────────────────────────────────
   async fetchModels() {
+    const cfg = this.getBackend();
     try {
-      const res = await fetch(`${this.ollamaUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(`${cfg.baseUrl}${cfg.modelsPath}`, {
+        signal: AbortSignal.timeout(3000)
+      });
       const data = await res.json();
-      this.availableModels = (data.models || []).map(m => m.name);
+      const rawModels = data[cfg.modelsKey] || [];
+      this.availableModels = rawModels.map(cfg.modelsMap);
       if (this.availableModels.length > 0 && !this.availableModels.includes(this.model)) {
         this.model = this.availableModels[0];
       }
     } catch (e) {
-      console.warn('Could not fetch Ollama models:', e.message);
+      console.warn('Could not fetch models from', cfg.name, ':', e.message);
     }
     return this.availableModels;
   },
@@ -104,6 +178,7 @@ const VentEngine = {
   async chat(userMessage) {
     const personality = this.personalities[this.currentPersonality];
     const systemPrompt = personality.prompt || this.personalities['best-friend'].prompt;
+    const cfg = this.getBackend();
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -112,7 +187,7 @@ const VentEngine = {
     ];
 
     try {
-      const res = await fetch(`${this.ollamaUrl}/v1/chat/completions`, {
+      const res = await fetch(`${cfg.baseUrl}${cfg.chatPath}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -125,7 +200,7 @@ const VentEngine = {
         signal: AbortSignal.timeout(30000)
       });
 
-      if (!res.ok) throw new Error(`Ollama returned ${res.status}`);
+      if (!res.ok) throw new Error(`${cfg.name} returned ${res.status}`);
 
       const data = await res.json();
       const reply = data.choices?.[0]?.message?.content || '';
