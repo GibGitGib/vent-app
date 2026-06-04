@@ -14,7 +14,16 @@ const VentEngine = {
       modelsKey: 'models',
       modelsMap: (m) => m.name,
       chatPath: '/v1/chat/completions',
-      chatFormat: 'openai'  // Ollama v1 endpoint is OpenAI-compatible
+      chatFormat: 'openai'
+    },
+    gpt4all: {
+      name: '📱 GPT4All (Phone)',
+      baseUrl: 'http://127.0.0.1:4891',
+      modelsPath: '/v1/models',
+      modelsKey: 'data',
+      modelsMap: (m) => m.id,
+      chatPath: '/v1/chat/completions',
+      chatFormat: 'openai'
     },
     pocketpal: {
       name: '📱 PocketPal (Phone)',
