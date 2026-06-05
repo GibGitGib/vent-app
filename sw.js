@@ -1,4 +1,4 @@
-// Vent App Service Worker — caches core assets for offline use
+// So Spill Service Worker — caches core assets for offline use
 const CACHE = 'vent-app-v1';
 const ASSETS = [
   '/vent-app/index.html',

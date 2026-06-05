@@ -1,14 +1,14 @@
-# AGENTS.md — Spill (formerly Vent App)
+# AGENTS.md — So Spill (formerly Vent App)
 
 > For Claude Code. Read this first.
 
 ## What This Is
 
-Spill is a local-first AI companion PWA. You talk, an on-device LLM responds with a personality you choose. Nothing leaves your device. Think: emotional first-aid kit in your pocket.
+So Spill is a local-first AI companion PWA. You talk, an on-device LLM responds with a personality you choose. Nothing leaves your device. Think: emotional first-aid kit in your pocket.
 
 - **Repo:** GibGitGib/vent-app (private) — internal codename: vent-app
-- **Brand:** Spill — spill.care
-- **Landing:** GibGitGib/vent-landing (public) → spill.care
+- **Brand:** So Spill — sospill.org
+- **Landing:** GibGitGib/vent-landing (public) → sospill.org
 - **Local:** `C:\Users\email\CoreTech_Sr\vent-app\`
 - **Tech:** Single HTML file + vanilla JS engine. No build step. No framework. No npm.
 - **LLM backends:** Ollama (desktop), GPT4All (phone), PocketPal, Enclave, Custom (any OpenAI-compatible)
@@ -34,12 +34,12 @@ Spill is a local-first AI companion PWA. You talk, an on-device LLM responds wit
 - Enclave App backend
 - Companion engine SDK extraction (`companion-engine.js`)
 - Pro tier gating: license validation (VEN-XXXX-XXXX-XXXX), personality locking (3 free / 5 Pro), upgrade banner + modal, Gumroad link
-- Landing page built (coral theme) — live at gibgitgib.github.io/vent-landing → will be spill.care (source: `landing/index.html`)
-- Domain: spill.care available — Corey to purchase + add CNAME → vent-landing repo
+- Landing page built (coral theme) — live at gibgitgib.github.io/vent-landing → will be sospill.org (source: `landing/index.html`)
+- Domain: sospill.org available — Corey to purchase + add CNAME → vent-landing repo
 - Public landing repo: GibGitGib/vent-landing
 
 ### 🔜 Pending
-- Corey: Buy spill.care domain → add CNAME to vent-landing repo
+- Corey: Buy sospill.org domain → add CNAME to vent-landing repo
 - Corey: Create Gumroad product at coretechlabs.gumroad.com/l/spill-pro ($2.99, upload LICENSE_KEYS.txt)
 - Test full purchase flow: buy on Gumroad → receive key → paste in PWA → unlock personalities
 - Product Hunt listing
