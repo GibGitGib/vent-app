@@ -22,12 +22,16 @@ Vent App is a local-first AI companion PWA. You vent, an on-device LLM responds 
 - `ios-lock-screen-widget.md` — Design blueprint (not built)
 
 ### NOT Built
-- Enclave App backend (currently only works via Custom)
-- Pro/free tier (no monetization at all)
 - Session management (start new, view history)
 - Mood tracking/analytics over time
 - Export
 - Theme system
+- Gumroad product setup (Corey needs to create product at coretechlabs.gumroad.com/l/vent-pro)
+
+### ✅ Completed June 5
+- Enclave App backend
+- Companion engine SDK extraction (`companion-engine.js`)
+- Pro tier gating: license validation (VEN-XXXX-XXXX-XXXX), personality locking (3 free / 5 Pro), upgrade banner + modal, Gumroad link
 
 ## Current Task: Pro Monetization + Enclave Backend
 
