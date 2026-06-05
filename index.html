@@ -466,7 +466,7 @@
 
   <!-- ── SCRIPTS ───────────────────────────────────── -->
   <script src="vent-engine.js"></script>
-  <script src="../voice-analyzer/voice-analyzer.js"></script>
+  <script src="../frequency-analyzer/frequency-analyzer.js"></script>
   <script>
   // ── DOM Refs ─────────────────────────────────────
   const $ = id => document.getElementById(id);
@@ -514,7 +514,7 @@
     restoreConversation();
     // Sync backend UI after detection
     syncBackendUI();
-    // Init voice analyzer + disclaimer
+    // Init frequency analyzer + disclaimer
     initVoiceAnalyzer();
     showDisclaimer();
   }

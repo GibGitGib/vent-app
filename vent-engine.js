@@ -25,6 +25,15 @@ const VentEngine = {
       chatPath: '/v1/chat/completions',
       chatFormat: 'openai'
     },
+    enclave: {
+      name: '📱 Enclave (Phone)',
+      baseUrl: 'http://127.0.0.1:8080',
+      modelsPath: '/v1/models',
+      modelsKey: 'data',
+      modelsMap: (m) => m.id,
+      chatPath: '/v1/chat/completions',
+      chatFormat: 'openai'
+    },
     pocketpal: {
       name: '📱 PocketPal (Phone)',
       baseUrl: 'http://127.0.0.1:8080',
@@ -87,7 +96,7 @@ const VentEngine = {
       name: '🔥 Hype Machine',
       emoji: '🔥',
       prompt: `You are pure, relentless, unfiltered encouragement. Every message is a pep talk. You hype the user up no matter what. Use ALL CAPS for emphasis sometimes. Call out their strengths. Remind them of past wins. You're the friend who believes in them more than they believe in themselves. Keep it under 4 sentences but make every word count.`,
-      tagline: 'UNSTOPPABLE energy. You've GOT this.'
+      tagline: 'UNSTOPPABLE energy. You\'ve GOT this.'
     },
     'zen': {
       name: '🧘 Zen Master',
