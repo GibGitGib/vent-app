@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vent App — Talk It Out. Feel Better.</title>
+  <meta name="description" content="The AI companion that listens. 8 personalities, 100% private, on-device. Nothing you say ever leaves your phone." />
+  <meta name="keywords" content="vent app, AI companion, emotional support, venting app, private AI, local AI, on-device AI, mood tracker, talk it out" />
+
+  <meta property="og:title" content="Vent App — Talk It Out. Feel Better." />
+  <meta property="og:description" content="The AI companion that listens. 8 personalities, 100% private, on-device." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ventapp.app" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Vent App — Talk It Out. Feel Better." />
+  <meta name="twitter:description" content="The AI companion that listens. 8 personalities, 100% private, on-device." />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a12;
+      --card:      #141420;
+      --card2:     #1a1a2e;
+      --red:       #e94560;
+      --red-dim:   #c03950;
+      --gold:      #f5c518;
+      --text:      #e8e8f0;
+      --muted:     #8888aa;
+      --border:    rgba(233,69,96,0.18);
+      --radius:    14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1rem, 5vw, 3rem); height: 64px;
+      background: rgba(10,10,18,0.88);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 1.05rem; text-decoration: none; color: var(--text);
+    }
+
+    .nav-logo .logo-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--red), var(--red-dim));
+      border-radius: 8px; font-size: 16px;
+    }
+
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 22px; border-radius: 8px; font-size: 0.9rem;
+      font-weight: 600; text-decoration: none; cursor: pointer;
+      transition: all 0.2s ease; border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--red), var(--red-dim));
+      color: #fff; box-shadow: 0 4px 18px rgba(233,69,96,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(233,69,96,0.5); }
+
+    .btn-outline {
+      background: transparent; color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--red); color: var(--red); }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #d4a810);
+      color: #0a0a12; box-shadow: 0 4px 18px rgba(245,197,24,0.25);
+    }
+    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(245,197,24,0.4); }
+
+    .btn-large { padding: 14px 32px; font-size: 1rem; border-radius: 10px; }
+
+    section { padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 5vw, 3rem); }
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    .section-label {
+      display: inline-block; font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 12px;
+    }
+
+    h1, h2, h3 { line-height: 1.2; }
+
+    h2 {
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 800; margin-bottom: 1rem;
+    }
+
+    .center { text-align: center; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 88vh; display: flex; align-items: center;
+      padding-top: 0; position: relative; overflow: hidden;
+    }
+
+    .hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+
+    .hero-bg::before {
+      content: ''; position: absolute; top: -30%; left: 50%;
+      transform: translateX(-50%); width: 900px; height: 700px;
+      background: radial-gradient(ellipse at center, rgba(233,69,96,0.18) 0%, transparent 65%);
+    }
+
+    .hero-bg::after {
+      content: ''; position: absolute; bottom: -10%; left: 15%;
+      width: 400px; height: 400px;
+      background: radial-gradient(ellipse at center, rgba(245,197,24,0.07) 0%, transparent 65%);
+    }
+
+    .hero-inner { position: relative; z-index: 1; text-align: center; width: 100%; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(233,69,96,0.12); border: 1px solid rgba(233,69,96,0.28);
+      color: #f0a0b0; font-size: 0.78rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 100px; margin-bottom: 24px; letter-spacing: 0.03em;
+    }
+
+    .hero-badge .dot {
+      width: 7px; height: 7px; background: var(--gold);
+      border-radius: 50%; animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 900; letter-spacing: -0.02em; margin-bottom: 18px;
+    }
+
+    h1 span.highlight {
+      background: linear-gradient(135deg, var(--red) 0%, #f0a0b0 50%, var(--gold) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2.2vw, 1.25rem); color: var(--muted);
+      margin-bottom: 40px; max-width: 520px; margin-left: auto; margin-right: auto;
+    }
+
+    .hero-ctas {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    }
+
+    .hero-note {
+      margin-top: 18px; font-size: 0.78rem; color: var(--muted);
+    }
+
+    .hero-note span { color: var(--red); font-weight: 600; }
+
+    /* ── HEART ANIMATION ── */
+    .heart-demo {
+      margin: 60px auto 0; width: 100px; height: 100px;
+      position: relative; display: flex; align-items: center; justify-content: center;
+    }
+
+    .heart-demo .ring {
+      position: absolute; border-radius: 50%;
+      border: 2px solid rgba(233,69,96,0.3);
+      animation: ring-expand 2.4s ease-out infinite;
+    }
+    .heart-demo .ring:nth-child(1) { width: 100%; height: 100%; animation-delay: 0s; }
+    .heart-demo .ring:nth-child(2) { width: 100%; height: 100%; animation-delay: 0.8s; }
+    .heart-demo .ring:nth-child(3) { width: 100%; height: 100%; animation-delay: 1.6s; }
+
+    @keyframes ring-expand {
+      0%   { transform: scale(1);   opacity: 0.7; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    .heart-demo .heart-core {
+      position: relative; z-index: 1; width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--red), var(--red-dim));
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 26px; box-shadow: 0 0 32px rgba(233,69,96,0.4);
+      animation: heartbeat 1.2s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      15% { transform: scale(1.15); }
+      30% { transform: scale(1); }
+      45% { transform: scale(1.1); }
+      60% { transform: scale(1); }
+    }
+
+    /* ── HOW IT WORKS ── */
+    #how { background: linear-gradient(180deg, transparent 0%, rgba(233,69,96,0.04) 50%, transparent 100%); }
+
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 28px; margin-top: 48px;
+    }
+
+    .step {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 32px 28px; text-align: center;
+      position: relative; transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .step:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(233,69,96,0.15); }
+
+    .step-num {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--red), var(--red-dim));
+      color: #fff; width: 28px; height: 28px; border-radius: 50%;
+      font-size: 0.78rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .step-icon { font-size: 2.8rem; margin-bottom: 16px; display: block; }
+    .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── PERSONALITIES ── */
+    .personality-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px; margin-top: 48px;
+    }
+
+    .persona-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px; text-align: center;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .persona-card:hover { transform: translateY(-3px); border-color: rgba(233,69,96,0.45); }
+
+    .persona-card .emoji { font-size: 3rem; margin-bottom: 12px; display: block; }
+    .persona-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+    .persona-card p { color: var(--muted); font-size: 0.85rem; font-style: italic; }
+
+    .persona-more {
+      text-align: center; margin-top: 24px;
+      color: var(--muted); font-size: 0.9rem;
+    }
+    .persona-more strong { color: var(--red); }
+
+    /* ── FEATURES ── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px; margin-top: 48px;
+    }
+
+    .feature-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .feature-card:hover { transform: translateY(-3px); border-color: rgba(233,69,96,0.45); box-shadow: 0 8px 28px rgba(233,69,96,0.12); }
+
+    .feature-icon { font-size: 2rem; margin-bottom: 14px; display: block; }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .feature-card p { color: var(--muted); font-size: 0.87rem; }
+
+    .feature-tag {
+      display: inline-block; margin-top: 12px; font-size: 0.7rem;
+      font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 100px;
+      background: rgba(245,197,24,0.1); color: var(--gold);
+      border: 1px solid rgba(245,197,24,0.2);
+    }
+    .feature-tag.free {
+      background: rgba(233,69,96,0.12); color: #f0a0b0; border-color: rgba(233,69,96,0.25);
+    }
+
+    /* ── PRICING ── */
+    #pricing { background: linear-gradient(180deg, transparent 0%, rgba(233,69,96,0.05) 50%, transparent 100%); }
+
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; margin-top: 48px; max-width: 760px; margin-left: auto; margin-right: auto;
+    }
+
+    .pricing-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 36px 30px; position: relative;
+    }
+
+    .pricing-card.pro {
+      border-color: rgba(233,69,96,0.5);
+      background: linear-gradient(160deg, #1a1a2e, #141420);
+      box-shadow: 0 8px 40px rgba(233,69,96,0.2);
+    }
+
+    .best-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--red), var(--red-dim));
+      color: #fff; font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 4px 14px; border-radius: 100px; white-space: nowrap;
+    }
+
+    .plan-name { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .plan-price { font-size: 2.6rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 4px; }
+    .plan-price sup { font-size: 1.2rem; font-weight: 700; vertical-align: super; margin-right: 2px; }
+    .plan-price .period { font-size: 0.9rem; font-weight: 500; color: var(--muted); }
+    .plan-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 11px; margin-bottom: 28px; }
+    .plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; }
+    .plan-features .minus { color: #555; }
+
+    /* ── CTA ── */
+    #cta {
+      text-align: center; padding-bottom: clamp(5rem, 10vw, 8rem);
+    }
+    #cta .cta-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 32px; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 40px 20px; border-top: 1px solid var(--border);
+      color: var(--muted); font-size: 0.78rem;
+    }
+    footer a { color: var(--red); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">
+    <span class="logo-icon">💛</span>
+    Vent App
+  </a>
+  <div class="nav-actions">
+    <a href="#pricing" class="btn btn-outline">Pricing</a>
+    <a href="https://ventapp.app/app.html" class="btn btn-primary">Try Free</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-inner container">
+    <div class="hero-badge">
+      <span class="dot"></span> Now available — local AI companion
+    </div>
+    <h1>
+      Vent. <span class="highlight">Feel Better.</span><br>No Judgment.
+    </h1>
+    <p class="hero-sub">
+      The AI companion that listens. 8 personalities, 100% private, on-device.<br>Nothing you say ever leaves your phone.
+    </p>
+    <div class="hero-ctas">
+      <a href="https://ventapp.app/app.html" class="btn btn-primary btn-large">Try Free</a>
+      <a href="https://coretechlabs.gumroad.com/l/vent-pro" class="btn btn-gold btn-large">Buy Pro — $2.99</a>
+    </div>
+    <p class="hero-note"><span>🔒</span> No account. No cloud. No one listening.</p>
+    <div class="heart-demo">
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="heart-core">💛</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section id="how">
+  <div class="container center">
+    <span class="section-label">How it works</span>
+    <h2>Three seconds to being heard</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">1</span>
+        <span class="step-icon">🎭</span>
+        <h3>Pick a personality</h3>
+        <p>Best Friend, No Judgment, Tough Love, or 5 others. Each one brings a different energy — you choose who you need right now.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <span class="step-icon">💬</span>
+        <h3>Talk or type</h3>
+        <p>Say what's on your mind. No filter needed. Vent about work, relationships, anxiety, or just how your day went.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <span class="step-icon">💛</span>
+        <h3>Feel heard</h3>
+        <p>Get a thoughtful, personality-matched response. Mood detection helps you track how you're feeling over time. No judgment — ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PERSONALITIES ═══ -->
+<section>
+  <div class="container center">
+    <span class="section-label">8 Personalities</span>
+    <h2>Choose who you need right now</h2>
+    <div class="personality-grid">
+      <div class="persona-card">
+        <span class="emoji">💛</span>
+        <h3>Best Friend</h3>
+        <p>"Your ride-or-die, always in your corner."</p>
+      </div>
+      <div class="persona-card">
+        <span class="emoji">🤐</span>
+        <h3>No Judgment Zone</h3>
+        <p>"Say anything. No advice. No judgment. Just heard."</p>
+      </div>
+      <div class="persona-card">
+        <span class="emoji">🔥</span>
+        <h3>Hype Machine</h3>
+        <p>"UNSTOPPABLE energy. You've GOT this."</p>
+      </div>
+    </div>
+    <p class="persona-more">
+      + <strong>5 more in Pro:</strong> Reflective Listener · Funny Friend · Tough Love · Zen Master · Custom
+    </p>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section>
+  <div class="container center">
+    <span class="section-label">Features</span>
+    <h2>Everything an AI companion should be</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3>100% Private</h3>
+        <p>Everything stays on your device. No servers, no cloud, no accounts. Your conversations are yours alone — processed locally by your own AI.</p>
+        <span class="feature-tag free">Free & Pro</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎭</span>
+        <h3>8 Personalities</h3>
+        <p>Switch between personalities depending on what you need. Venting to Best Friend hits different than venting to Zen Master. 3 free, 8 with Pro.</p>
+        <span class="feature-tag">3 Free · 8 Pro</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎤</span>
+        <h3>Voice Input</h3>
+        <p>Sometimes typing is too much. Just talk — the app listens and responds. Voice input with Pro, text input always free.</p>
+        <span class="feature-tag">Pro</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">😌</span>
+        <h3>Mood Detection</h3>
+        <p>The app picks up on how you're feeling — angry, sad, anxious, happy — and the personality responds accordingly. Track your emotional patterns.</p>
+        <span class="feature-tag free">Free & Pro</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📡</span>
+        <h3>Works Offline</h3>
+        <p>No internet? No problem. Offline fallback responses keep you company even when your connection doesn't. Local AI runs on your device.</p>
+        <span class="feature-tag free">Free & Pro</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📱</span>
+        <h3>Install as App</h3>
+        <p>Add Vent App to your home screen. It works like a native app — full-screen, no browser chrome, always one tap away.</p>
+        <span class="feature-tag free">Free & Pro</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PRICING ═══ -->
+<section id="pricing">
+  <div class="container center">
+    <span class="section-label">Pricing</span>
+    <h2>Simple, one-time pricing</h2>
+    <p style="color:var(--muted);margin-bottom:0;">No subscriptions. Pay once, own it forever.</p>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0</div>
+        <p class="plan-desc">Everything you need to vent, no strings attached.</p>
+        <ul class="plan-features">
+          <li>✓ 3 personalities (Best Friend, No Judgment, Tough Love)</li>
+          <li>✓ Text input</li>
+          <li>✓ Mood detection</li>
+          <li>✓ Offline fallback</li>
+          <li>✓ PWA — install to home screen</li>
+          <li>✓ 100% private, on-device</li>
+          <li class="minus">— Voice input</li>
+          <li class="minus">— 5 additional personalities</li>
+        </ul>
+        <a href="https://ventapp.app/app.html" class="btn btn-outline" style="width:100%;justify-content:center;">Start for Free</a>
+      </div>
+
+      <div class="pricing-card pro">
+        <span class="best-badge">Best Value</span>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><sup>$</sup>2.99 <span class="period">one-time</span></div>
+        <p class="plan-desc">The full power of Vent App, yours forever.</p>
+        <ul class="plan-features">
+          <li>✓ Everything in Free</li>
+          <li>✓ 🎤 Voice input</li>
+          <li>✓ 🎭 8 personalities (all of them)</li>
+          <li>✓ 🧘 Zen Master · 😂 Funny Friend · 🛋️ Reflective Listener</li>
+          <li>✓ ✨ Custom personality (you write the rules)</li>
+          <li>✓ 💛 Extended conversation memory</li>
+          <li>✓ ⚡ Priority features</li>
+        </ul>
+        <a href="https://coretechlabs.gumroad.com/l/vent-pro" class="btn btn-primary" style="width:100%;justify-content:center;">Buy Pro — $2.99</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FINAL CTA ═══ -->
+<section id="cta">
+  <div class="container">
+    <h2>Ready to vent?</h2>
+    <p style="color:var(--muted);font-size:1.1rem;max-width:500px;margin:0 auto 0;">
+      Everyone needs someone to talk to. Vent App is that someone — always available, never judging, 100% private.
+    </p>
+    <div class="cta-buttons">
+      <a href="https://ventapp.app/app.html" class="btn btn-primary btn-large">Try Free</a>
+      <a href="https://coretechlabs.gumroad.com/l/vent-pro" class="btn btn-gold btn-large">Buy Pro — $2.99</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><a href="https://coretechlabs.app">CoreTech Labs</a> — Labs for Software Experiments.</p>
+  <p style="margin-top:6px;">© 2026 Vent App. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
