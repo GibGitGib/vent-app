@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Vent">
+  <meta name="apple-mobile-web-app-title" content="Spill">
   <meta name="theme-color" content="#1a1a2e">
-  <title>Vent App</title>
+  <title>Spill</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -458,7 +458,7 @@
 
   <!-- ── HEADER ────────────────────────────────────── -->
   <header>
-    <div class="logo">Vent<span>.</span></div>
+    <div class="logo">Spill<span>.</span></div>
     <div style="display:flex;align-items:center;gap:12px;">
       <div id="connection-status">
         <span class="status-dot checking" id="status-dot"></span>
@@ -509,9 +509,9 @@
     <div id="disclaimer" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px;">
       <div style="background:var(--surface); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:24px; max-width:380px; text-align:center;">
         <div style="font-size:40px; margin-bottom:12px;">💛</div>
-        <h2 style="margin-bottom:8px;">Welcome to Vent App</h2>
+        <h2 style="margin-bottom:8px;">Welcome to Spill App</h2>
         <p style="color:var(--text-muted); font-size:14px; line-height:1.6; margin-bottom:16px;">
-          Vent App is an <strong>AI companion for entertainment and emotional expression.</strong><br><br>
+          Spill App is an <strong>AI companion for entertainment and emotional expression.</strong><br><br>
           It is <strong>not</strong> a therapist, counselor, or medical service. If you're in crisis, help is available:<br>
           <strong>988</strong> — Suicide & Crisis Lifeline<br>
           <strong>Crisis Text Line:</strong> text HOME to 741741
@@ -547,7 +547,7 @@
     <div id="conversation">
       <div class="empty-state" id="empty-state">
         <div class="big-icon">💛</div>
-        <h2>Vent App</h2>
+        <h2>Spill App</h2>
         <p>Everything you say stays here.<br>No judgment. No cloud. No leaks.</p>
       </div>
     </div>
@@ -565,7 +565,7 @@
   <div id="upgrade-modal" style="display:none;" onclick="if(event.target===this)closeUpgradeModal()">
     <div class="vent-upgrade-box">
       <div class="upgrade-modal-header">
-        <h3>✨ Unlock Vent Pro</h3>
+        <h3>✨ Unlock Spill Pro</h3>
         <button class="upgrade-close-btn" onclick="closeUpgradeModal()">✕</button>
       </div>
       <div id="upgrade-reason" class="upgrade-reason"></div>
@@ -908,7 +908,7 @@
     if ('Notification' in window && Notification.permission === 'default') {
       const granted = await Notification.requestPermission();
       if (granted === 'granted') {
-        new Notification('Vent App', {
+        new Notification('Spill App', {
           body: 'Notifications enabled. You\'ll get a tap-to-open ping after each vent session.',
           icon: 'icon-192.png'
         });
@@ -916,9 +916,9 @@
     }
   }
 
-  function sendVentNotification(summary) {
+  function sendSpillNotification(summary) {
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Vent App 💛', {
+      new Notification('Spill App 💛', {
         body: summary || 'Your vent was heard. Tap to open.',
         icon: 'icon-192.png',
         tag: 'vent-complete',
@@ -1004,7 +1004,7 @@
       renderPersonalities();
       const toast = document.createElement('div');
       toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#4caf50;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:300;animation:fadeIn 0.3s ease;white-space:nowrap;';
-      toast.textContent = result.dev ? '🛠 Dev mode activated' : '✅ Vent Pro activated!';
+      toast.textContent = result.dev ? '🛠 Dev mode activated' : '✅ Spill Pro activated!';
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
     } else {
