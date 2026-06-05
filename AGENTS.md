@@ -1,111 +1,136 @@
-# AGENTS.md — So Spill (formerly Vent App)
+# AGENTS.md — So Spill
 
-> For Claude Code. Read this first.
+> For Claude Code & any AI agent. Read this first.
 
 ## What This Is
 
 So Spill is a local-first AI companion PWA. You talk, an on-device LLM responds with a personality you choose. Nothing leaves your device. Think: emotional first-aid kit in your pocket.
 
+- **Brand:** So Spill — [sospill.org](https://sospill.org)
 - **Repo:** GibGitGib/vent-app (private) — internal codename: vent-app
-- **Brand:** So Spill — sospill.org
 - **Landing:** GibGitGib/vent-landing (public) → sospill.org
 - **Local:** `C:\Users\email\CoreTech_Sr\vent-app\`
+- **Gumroad:** coretechlabs.gumroad.com/l/spill-pro ($2.99, one-time)
 - **Tech:** Single HTML file + vanilla JS engine. No build step. No framework. No npm.
 - **LLM backends:** Ollama (desktop), GPT4All (phone), PocketPal, Enclave, Custom (any OpenAI-compatible)
-- **Personalities:** 8 curated system prompts (Best Friend, No Judgment, Tough Love, Therapist, Funny, Hype, Zen, Custom)
+- **Personalities:** 8 curated (Best Friend, No Judgment, Tough Love, Therapist, Funny, Hype, Zen, Custom)
 
-## Current State
+## Architecture
 
-### Built
-- `index.html` — 944 lines, full PWA with conversation UI, voice input, text input, mood display, lock screen widget deep link
-- `vent-engine.js` — 308 lines, clean engine: multi-backend detection, chat, mood detection, memory (localStorage, 40 msgs), fallback responses, personality management
-- `manifest.json` + `sw.js` — PWA installable
-- `icon-192.png` + `icon-512.png` — App icons
-- `ios-lock-screen-widget.md` — Design blueprint (not built)
+```
+vent-app/
+├── index.html          ← The app (1129 lines). PWA + UI + Pro gating + voice + mood
+├── vent-engine.js      ← Core engine (308 lines). Backends, chat, mood, memory, fallback
+├── companion-engine.js ← Standalone SDK — reusable across any CoreTech B2C app
+├── manifest.json       ← PWA manifest ("So Spill", coral theme #e94560)
+├── sw.js               ← Service worker (offline cache)
+├── icon-192.png        ← App icon (small)
+├── icon-512.png        ← App icon (large)
+├── LICENSE_KEYS.txt    ← 20 Pro keys (VEN-XXXX-XXXX-XXXX format)
+├── AGENTS.md           ← This file
+└── ios-lock-screen-widget.md  ← Design blueprint (not built)
+```
 
-### NOT Built
+## Key Systems
+
+### Pro Tier Gating (`index.html`, lines ~870-1010)
+- License format: `VEN-XXXX-XXXX-XXXX` (checksum-validated)
+- Dev bypass: `DEV-XXXX-XXXX-XXXX` (any body works)
+- Gated: 3 free personalities / 5 Pro + voice input + extended memory
+- Upgrade modal + banner (modeled after Voice Calc)
+- Gumroad link: `coretechlabs.gumroad.com/l/spill-pro`
+
+### Disclaimer System (`index.html`, lines ~508-530)
+- First-run modal: explicit is/is-not (AI companion, NOT therapist/medical)
+- Crisis resources: 988, Crisis Text Line (741741)
+- Crisis banner: auto-shows on language suggesting distress
+- **DO NOT remove or soften these.** Legal requirement.
+
+### Backends (`vent-engine.js`)
+- Ollama, GPT4All, PocketPal, Enclave (phone), Custom
+- Enclave backend: `http://127.0.0.1:8080` (port may need adjustment for actual Enclave App)
+
+### Mood Detection (`vent-engine.js`)
+- Keyword-based: anxiety, anger, sadness, gratitude, confusion, celebration, grief, neutral
+- Drives crisis banner trigger on high-risk mood patterns
+
+### Memory
+- localStorage, last 40 messages
+- No cloud, no accounts, no servers
+
+## What's Built
+
+- Full PWA with install prompt
+- Text + voice input (voice = Pro-gated)
+- 8 personalities with mood detection
+- Pro tier: license validation, upgrade flow, banner/modal
+- Disclaimer + crisis resources
+- Offline fallback responses
+- Lock screen widget deep link (`?mode=quick-vent`)
+- Companion engine SDK extracted (standalone, zero-dependency)
+
+## What's NOT Built (v2)
+
 - Session management (start new, view history)
 - Mood tracking/analytics over time
-- Export
-- Theme system
-- Gumroad product setup (Corey needs to create product at coretechlabs.gumroad.com/l/spill-pro)
-
-### ✅ Completed June 5
-- Enclave App backend
-- Companion engine SDK extraction (`companion-engine.js`)
-- Pro tier gating: license validation (VEN-XXXX-XXXX-XXXX), personality locking (3 free / 5 Pro), upgrade banner + modal, Gumroad link
-- Landing page built (coral theme) — live at gibgitgib.github.io/vent-landing → will be sospill.org (source: `landing/index.html`)
-- Domain: sospill.org available — Corey to purchase + add CNAME → vent-landing repo
-- Public landing repo: GibGitGib/vent-landing
-
-### 🔜 Pending
-- Corey: Buy sospill.org domain → add CNAME to vent-landing repo
-- Corey: Create Gumroad product at coretechlabs.gumroad.com/l/spill-pro ($2.99, upload LICENSE_KEYS.txt)
-- Test full purchase flow: buy on Gumroad → receive key → paste in PWA → unlock personalities
-- Product Hunt listing
-- Reddit launch posts
-
-## Current Task: Pro Monetization + Enclave Backend
-
-### Task 1: Add Enclave Backend
-Add to `vent-engine.js` backends:
-```js
-enclave: {
-  name: '📱 Enclave (Phone)',
-  baseUrl: 'http://127.0.0.1:8080',  // TBD — check Enclave App docs for actual port
-  modelsPath: '/v1/models',
-  modelsKey: 'data',
-  modelsMap: (m) => m.id,
-  chatPath: '/v1/chat/completions',
-  chatFormat: 'openai'
-}
-```
-Corey uses Enclave App with Liquid LFM 2.5-1.5B. If you don't know the port, use 8080 as default (most OpenAI-compatible servers) and note it may need adjustment.
-
-### Task 2: Pro Tier Gating
-Model after Voice Calculator's Pro system (see `../voice-calculator/index.html` lines 140-168):
-- License key format: `VEN-XXXX-XXXX-XXXX`
-- Checksum validation (same algorithm as Voice Calc)
-- Gate at least ONE feature behind Pro:
-  - **Recommendation:** Gate personalities beyond the first 3 (Best Friend, No Judgment, Tough Love = free; the rest = Pro)
-  - OR gate conversation memory beyond 10 messages
-  - OR gate voice input (text = free, voice = Pro)
-- Price: $2.99 one-time via Gumroad (Corey will set up the product)
-- DEV-XXXX-XXXX-XXXX bypass for development
-- Upgrade banner + modal (steal CSS from Voice Calc's `.vc-upgrade-overlay` / `.vc-upgrade-box`)
-
-### Task 3: Companion Engine Extraction
-Extract the portable core of `vent-engine.js` into `companion-engine.js`:
-- Keep: backends system, chat(), mood detection, personality system, memory, fallback
-- Remove: Vent-specific UI references
-- Make it a drop-in SDK for: Jenny Rich, Situational Coach, PUSHYPUSHY, any future companion app
+- Export conversations
+- Theme system (dark/light)
+- Actual lock screen widget (iOS Swift/SwiftUI)
+- Analytics/telemetry (intentionally — privacy-first)
 
 ## Constraints
 
-- **Single-file PWA** — no build step, no framework, no npm. Everything in `index.html` + `.js` files.
+- **Single-file PWA** — no build step, no framework, no npm. All JS inline or in `.js` files.
 - **Local-first** — all data in localStorage. No servers, no accounts, no cloud.
-- **Private repo** — no API keys, no secrets exposed. Public Pages not planned.
-- **Mobile-first** — test on phone (Enclave App on iOS/Android serving LLM). CSS uses `100dvh`, safe-area-inset, touch-friendly tap targets.
-- **Offline-resilient** — must work without internet. Fallback responses already exist.
+- **Private repo** — no API keys, no secrets exposed.
+- **Mobile-first** — CSS uses `100dvh`, safe-area-inset, touch-friendly tap targets.
+- **Offline-resilient** — must work without internet.
 
 ## How to Test
 
-1. Open `index.html` in browser (file:// works, no server needed)
+```
+1. Open index.html in browser (file:// works, no server needed)
 2. Point at running LLM backend (Ollama on desktop, or Enclave on phone)
 3. Vent something → verify personality + mood detection
 4. Test offline: disconnect → verify fallback response
+5. Test Pro: paste DEV-XXXX-XXXX-XXXX → verify unlock + all personalities
+6. Test crisis: type "I want to kill myself" → verify crisis banner appears
+```
+
+## Known Issues / Gotchas
+
+- Enclave port unconfirmed (defaulted to 8080)
+- PocketPal lacks API server (GitHub issue #407) — may need workaround
+- Pro license validation is client-side checksum only — acceptable for $2.99 product
+- Voice input uses Web Speech API — works on Chrome/Safari mobile, not Firefox
+- `sendSpillNotification()` function name is legacy — don't rename (internal only)
 
 ## Voice Calc Reference
 
-The Voice Calculator Pro gating system is the template. Key files:
-- `../voice-calculator/index.html` lines 140-168 — license validation (`vcValidateLicense`, `vcLicenseChecksum`)
+The Pro gating system was modeled after Voice Calculator. Reference files:
+- `../voice-calculator/index.html` lines 140-168 — license validation
 - `../voice-calculator/index.html` lines 903-915 — Pro banner CSS
 - `../voice-calculator/index.html` lines 1087-1131 — Upgrade modal CSS
 - `../voice-calculator/HANDOFF.md` — Full project reference
 
+## Companion Engine SDK
+
+`companion-engine.js` is the portable core. Use it as a drop-in for any future CoreTech B2C companion app:
+- `window.CompanionEngine` (factory pattern)
+- Personalities + multi-backend chat + mood detection + memory
+- Zero dependencies. Include via `<script>` tag.
+- Already designed for: Jenny Rich, Situational Coach, PUSHYPUSHY
+
+## Brand Voice
+
+- **So Spill** — conversational, warm, lowercase-friendly ("so spill")
+- Tagline: "Talk it out. Feel better."
+- CoreTech Labs: "Labs for Software Experiments."
+- Corey is the solo founder. Ship for speed, not perfection.
+
 ## After Building
 
 - Do NOT modify `ios-lock-screen-widget.md` (design doc, not code)
+- Do NOT remove or soften disclaimer/crisis content
 - Commit with descriptive message: `feat: <what you built>`
-- CoreTech brand: "Labs for Software Experiments." — use this voice in any user-facing copy
-- Corey is the solo founder. Build for shipping speed, not perfection.
+- Update this AGENTS.md if architecture changes
