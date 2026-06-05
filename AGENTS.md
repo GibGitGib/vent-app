@@ -32,6 +32,16 @@ Vent App is a local-first AI companion PWA. You vent, an on-device LLM responds 
 - Enclave App backend
 - Companion engine SDK extraction (`companion-engine.js`)
 - Pro tier gating: license validation (VEN-XXXX-XXXX-XXXX), personality locking (3 free / 5 Pro), upgrade banner + modal, Gumroad link
+- Landing page built (coral theme) — live at gibgitgib.github.io/vent-landing (source: `landing/index.html`)
+- Domain: ventapp.app available — Corey to purchase + add CNAME → gibgitgib.github.io
+- Public landing repo: GibGitGib/vent-landing
+
+### 🔜 Pending
+- Corey: Buy ventapp.app domain → add CNAME to vent-landing repo
+- Corey: Create Gumroad product at coretechlabs.gumroad.com/l/vent-pro ($2.99, upload LICENSE_KEYS.txt)
+- Test full purchase flow: buy on Gumroad → receive key → paste in PWA → unlock personalities
+- Product Hunt listing
+- Reddit launch posts
 
 ## Current Task: Pro Monetization + Enclave Backend
 
