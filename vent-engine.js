@@ -59,6 +59,8 @@ const VentEngine = {
   currentPersonality: 'best-friend',
   memories: [],          // last 40 messages (localStorage)
   maxMemories: 40,
+  isPro: false,
+  proPersonalities: ['therapist', 'funny', 'hype', 'zen', 'custom'],
 
   // ── Personalities ─────────────────────────────────────
   personalities: {
@@ -125,9 +127,53 @@ const VentEngine = {
     '😔 guilty':    ['guilty', 'ashamed', 'regret', 'sorry', 'shouldn\'t have', 'wish I hadn\'t']
   },
 
+  // ── Pro License ──────────────────────────────────────────
+  ventLicenseChecksum(s) {
+    let n = 0;
+    for (let i = 0; i < s.length; i++) n += s.charCodeAt(i) * (i + 1);
+    return n.toString(16).toUpperCase().padStart(4, '0').slice(-4);
+  },
+
+  ventValidateLicense(key) {
+    if (!key || typeof key !== 'string') return { valid: false, reason: 'No key provided' };
+    const parts = key.toUpperCase().trim().split('-');
+    if (parts.length !== 4) return { valid: false, reason: 'Invalid format — use VEN-XXXX-XXXX-XXXX' };
+    const prefix = parts[0];
+    if (prefix === 'DEV') return { valid: true, product: 'Development', dev: true };
+    if (prefix !== 'VEN') return { valid: false, reason: 'Unknown key prefix (keys start with VEN-)' };
+    const body = parts.slice(0, 3).join('');
+    if (parts[3] !== this.ventLicenseChecksum(body)) return { valid: false, reason: 'Invalid key — checksum failed' };
+    return { valid: true, product: 'Vent Pro', dev: false };
+  },
+
+  loadLicense() {
+    try {
+      const stored = localStorage.getItem('vent-pro-key');
+      if (stored) {
+        const result = this.ventValidateLicense(stored);
+        this.isPro = result.valid;
+      }
+    } catch (e) { this.isPro = false; }
+    return this.isPro;
+  },
+
+  activateLicense(key) {
+    const result = this.ventValidateLicense(key);
+    if (result.valid) {
+      this.isPro = true;
+      try { localStorage.setItem('vent-pro-key', key.toUpperCase().trim()); } catch (e) {}
+    }
+    return result;
+  },
+
+  isPersonalityLocked(key) {
+    return !this.isPro && this.proPersonalities.includes(key);
+  },
+
   // ── Init ──────────────────────────────────────────────
   async init() {
     this.loadMemories();
+    this.loadLicense();
     this.activeBackend = localStorage.getItem('vent-backend') || 'ollama';
     await this.detectBackends();
     return this;

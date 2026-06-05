@@ -1,0 +1,11 @@
+# Vent App Pro License Keys
+# Format: VEN-XXXX-XXXX-XXXX
+# DEV-XXXX-XXXX-XXXX = dev bypass (any key body works)
+
+# ── Test Keys ──
+VEN-VENT-ESTK-EY00-2160
+VEN-CORE-TECH-LABS-C840
+VEN-PROD-KEY0-TEST-32E8
+
+# ── Dev Bypass ──
+DEV-XXXX-XXXX-XXXX

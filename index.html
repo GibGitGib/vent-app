@@ -368,6 +368,90 @@
       font-size: 16px;
       cursor: pointer;
     }
+
+    /* ── Pro Banner ────────────────────────────────── */
+    #pro-banner {
+      display: none;
+      margin: 0 16px 6px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(233,69,96,0.18), rgba(245,197,24,0.08));
+      border: 1px solid rgba(233,69,96,0.3);
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    #pro-banner.visible { display: flex; }
+    #pro-banner .banner-text { font-size: 12px; color: #e0e0f8; line-height: 1.4; }
+    #pro-banner .banner-text strong { color: var(--text); }
+    #pro-banner .banner-text small { font-size: 10px; opacity: 0.7; display: block; }
+    .banner-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .banner-buy-btn {
+      padding: 6px 14px; border-radius: 6px; border: none;
+      background: var(--accent); color: #fff;
+      font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+    .banner-dismiss-btn {
+      padding: 6px 8px; border-radius: 6px; border: none;
+      background: transparent; color: var(--text-muted); font-size: 14px; cursor: pointer; line-height: 1;
+    }
+
+    /* ── Locked Personality Chip ────────────────────── */
+    .persona-chip.locked { opacity: 0.55; }
+
+    /* ── Upgrade Modal ──────────────────────────────── */
+    .vent-upgrade-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.78);
+      z-index: 200; display: flex; align-items: center; justify-content: center;
+      padding: 20px; animation: fadeIn 0.2s ease;
+    }
+    .vent-upgrade-box {
+      background: var(--surface); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px; padding: 24px; max-width: 360px; width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+    .upgrade-modal-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    }
+    .upgrade-modal-header h3 { margin: 0; color: var(--text); font-size: 18px; font-weight: 700; }
+    .upgrade-close-btn {
+      background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; line-height: 1;
+    }
+    .upgrade-reason {
+      display: none; margin-bottom: 14px; padding: 8px 10px; border-radius: 6px;
+      background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.2);
+      font-size: 11px; color: var(--gold); line-height: 1.4;
+    }
+    .upgrade-desc { margin: 0 0 14px; color: #b0b0c8; font-size: 13px; line-height: 1.5; }
+    .upgrade-buy-link {
+      display: block; text-align: center; padding: 12px; border-radius: 10px;
+      background: var(--accent); color: #fff; text-decoration: none;
+      font-size: 14px; font-weight: 700; margin-bottom: 16px;
+    }
+    .upgrade-license-section { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; }
+    .upgrade-license-label {
+      font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .upgrade-license-row { display: flex; gap: 8px; }
+    .vent-license-input {
+      flex: 1; background: var(--card); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 10px 12px; color: var(--text);
+      font-size: 13px; font-family: inherit; outline: none;
+    }
+    .vent-license-input:focus { border-color: var(--accent); }
+    .upgrade-activate-btn {
+      padding: 10px 16px; border-radius: 8px; border: none;
+      background: var(--accent); color: #fff;
+      font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .upgrade-license-error { margin-top: 8px; font-size: 11px; color: #f85149; display: none; }
+    .pro-badge {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      background: linear-gradient(135deg, var(--accent), var(--gold));
+      color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; vertical-align: middle; margin-left: 6px;
+    }
   </style>
 </head>
 <body>
@@ -395,6 +479,7 @@
       <select id="backend-select">
         <option value="ollama">🖥️ Ollama</option>
         <option value="gpt4all">📱 GPT4All</option>
+        <option value="enclave">📱 Enclave</option>
         <option value="pocketpal">📱 PocketPal</option>
         <option value="custom">🔧 Custom</option>
       </select>
@@ -404,6 +489,18 @@
 
   <!-- ── PERSONALITY PICKER ────────────────────────── -->
   <div id="personality-picker"></div>
+
+  <!-- ── PRO BANNER ────────────────────────────────── -->
+  <div id="pro-banner">
+    <div class="banner-text">
+      <strong>✨ Unlock 5 more personalities</strong>
+      <small>Therapist · Funny · Hype · Zen · Custom — $2.99 one-time</small>
+    </div>
+    <div class="banner-actions">
+      <button class="banner-buy-btn" onclick="openUpgradeModal('')">Upgrade</button>
+      <button class="banner-dismiss-btn" onclick="dismissProBanner()">✕</button>
+    </div>
+  </div>
 
   <!-- ── MAIN ──────────────────────────────────────── -->
   <main>
@@ -464,6 +561,33 @@
     <button class="send-btn" id="send-btn">→</button>
   </div>
 
+  <!-- ── UPGRADE MODAL ────────────────────────────── -->
+  <div id="upgrade-modal" style="display:none;" onclick="if(event.target===this)closeUpgradeModal()">
+    <div class="vent-upgrade-box">
+      <div class="upgrade-modal-header">
+        <h3>✨ Unlock Vent Pro</h3>
+        <button class="upgrade-close-btn" onclick="closeUpgradeModal()">✕</button>
+      </div>
+      <div id="upgrade-reason" class="upgrade-reason"></div>
+      <p class="upgrade-desc">
+        <strong>$2.99</strong> one-time · lifetime access<br>
+        Therapist · Funny Friend · Hype Machine · Zen Master · Custom
+      </p>
+      <a href="https://coretechlabs.gumroad.com/l/vent-pro" target="_blank" rel="noopener" class="upgrade-buy-link">
+        Buy on Gumroad → $2.99
+      </a>
+      <div class="upgrade-license-section">
+        <div class="upgrade-license-label">Already purchased? Enter your license key:</div>
+        <div class="upgrade-license-row">
+          <input id="license-input" class="vent-license-input" type="text" placeholder="VEN-XXXX-XXXX-XXXX"
+            autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+          <button class="upgrade-activate-btn" onclick="activateProLicense()">Activate</button>
+        </div>
+        <div id="license-error" class="upgrade-license-error"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── SCRIPTS ───────────────────────────────────── -->
   <script src="vent-engine.js"></script>
   <script src="../frequency-analyzer/frequency-analyzer.js"></script>
@@ -514,6 +638,10 @@
     restoreConversation();
     // Sync backend UI after detection
     syncBackendUI();
+    // Show Pro banner for free users (unless dismissed)
+    if (!VentEngine.isPro && !localStorage.getItem('vent-pro-banner-dismissed')) {
+      document.getElementById('pro-banner').classList.add('visible');
+    }
     // Init frequency analyzer + disclaimer
     initVoiceAnalyzer();
     showDisclaimer();
@@ -824,16 +952,73 @@
     personalityPicker.innerHTML = '';
     const active = VentEngine.currentPersonality;
     for (const [key, p] of Object.entries(VentEngine.personalities)) {
+      const locked = VentEngine.isPersonalityLocked(key);
       const chip = document.createElement('span');
-      chip.className = 'persona-chip' + (key === active ? ' active' : '');
-      chip.textContent = p.emoji + ' ' + p.name;
+      chip.className = 'persona-chip' + (key === active ? ' active' : '') + (locked ? ' locked' : '');
+      chip.textContent = p.emoji + ' ' + p.name + (locked ? ' 🔒' : '');
       chip.addEventListener('click', () => {
+        if (locked) {
+          openUpgradeModal(p.name + ' is a Pro personality');
+          return;
+        }
         VentEngine.setPersonality(key);
         renderPersonalities();
       });
       personalityPicker.appendChild(chip);
     }
   }
+
+  // ── Pro Tier ──────────────────────────────────────
+  function openUpgradeModal(reason) {
+    const modal = document.getElementById('upgrade-modal');
+    const reasonEl = document.getElementById('upgrade-reason');
+    if (reason) {
+      reasonEl.textContent = '🔒 ' + reason;
+      reasonEl.style.display = 'block';
+    } else {
+      reasonEl.style.display = 'none';
+    }
+    document.getElementById('license-input').value = '';
+    document.getElementById('license-error').style.display = 'none';
+    modal.className = 'vent-upgrade-overlay';
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('license-input').focus(), 100);
+  }
+
+  function closeUpgradeModal() {
+    document.getElementById('upgrade-modal').style.display = 'none';
+  }
+
+  function dismissProBanner() {
+    document.getElementById('pro-banner').classList.remove('visible');
+    localStorage.setItem('vent-pro-banner-dismissed', '1');
+  }
+
+  function activateProLicense() {
+    const key = document.getElementById('license-input').value.trim();
+    const errorEl = document.getElementById('license-error');
+    const result = VentEngine.activateLicense(key);
+    if (result.valid) {
+      closeUpgradeModal();
+      document.getElementById('pro-banner').classList.remove('visible');
+      renderPersonalities();
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#4caf50;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:300;animation:fadeIn 0.3s ease;white-space:nowrap;';
+      toast.textContent = result.dev ? '🛠 Dev mode activated' : '✅ Vent Pro activated!';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    } else {
+      errorEl.textContent = '⚠ ' + result.reason;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeUpgradeModal();
+    if (e.key === 'Enter' && document.activeElement === document.getElementById('license-input')) {
+      activateProLicense();
+    }
+  });
 
   // ── Models ────────────────────────────────────────
   function renderModels() {
