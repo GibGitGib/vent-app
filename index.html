@@ -202,6 +202,23 @@
     }
     .msg.offline { border: 1px dashed rgba(255,255,255,0.15); }
 
+    /* Report button — subtle, appears on hover */
+    .report-btn {
+      display: none;
+      float: right;
+      font-size: 12px;
+      opacity: 0.35;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: opacity 0.15s, background 0.15s;
+      margin-left: 8px;
+      margin-bottom: 2px;
+      user-select: none;
+    }
+    .msg.ai:hover .report-btn { display: inline-block; }
+    .report-btn:hover { opacity: 1; background: rgba(248,81,73,0.12); }
+
     /* ── Input Bar ────────────────────────────────── */
     #input-bar {
       position: fixed;
@@ -577,7 +594,7 @@
         <strong>$2.99</strong> one-time · lifetime access<br>
         Therapist · Funny Friend · Hype Machine · Zen Master · Custom
       </p>
-      <a href="https://coretechlabs.gumroad.com/l/vent-pro" target="_blank" rel="noopener" class="upgrade-buy-link">
+      <a href="https://coretechlabs.gumroad.com/l/spill-pro" target="_blank" rel="noopener" class="upgrade-buy-link">
         Buy on Gumroad → $2.99
       </a>
       <div class="upgrade-license-section">
@@ -829,6 +846,9 @@
       html += `<div class="mood-tag">${mood}</div>`;
     }
     html += text;
+    if (role === 'ai') {
+      html += `<div class="report-btn" onclick="event.stopPropagation();reportMessage(this.parentElement)" title="Report inappropriate response">⚠️</div>`;
+    }
     if (offline) {
       html += `<div class="meta">⚠️ offline mode</div>`;
     }
@@ -1118,6 +1138,53 @@
       document.getElementById('disclaimer').style.display = 'none';
       localStorage.setItem('vent-disclaimer-accepted', 'true');
     });
+  }
+
+  // ── Report Message ──────────────────────────────────
+  function reportMessage(msgEl) {
+    const text = msgEl.textContent?.replace('⚠️', '').trim() || '(empty message)';
+    const personality = VentEngine.currentPersonality || 'unknown';
+    const model = modelSelect.value || 'unknown';
+    const report = [
+      '--- So Spill AI Report ---',
+      `Personality: ${personality}`,
+      `Model: ${model}`,
+      `Response:`,
+      text,
+      '---',
+      'Please attach a screenshot if available.',
+      'Send to: safety@sospill.org'
+    ].join('\n');
+
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(report).then(() => {
+        showToast('✅ Report copied — send to safety@sospill.org', 4000);
+      }).catch(() => {
+        showToast('⚠️ Copy failed — please screenshot and email', 4000);
+      });
+    } else {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = report;
+      ta.style.position = 'fixed'; ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('✅ Report copied — send to safety@sospill.org', 4000);
+    }
+  }
+
+  function showToast(msg, duration) {
+    const toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--text);padding:10px 20px;border-radius:12px;font-size:13px;z-index:400;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,0.5);animation:fadeIn 0.3s ease;white-space:nowrap;max-width:90vw;';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
   }
 
   // ── SW Registration ───────────────────────────────
