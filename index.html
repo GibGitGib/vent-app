@@ -482,16 +482,17 @@
         <span id="status-text">Checking...</span>
       </div>
       <button class="icon-btn" id="tts-toggle" title="Text-to-Speech">🔊</button>
+      <button class="icon-btn" id="settings-toggle" title="Settings" style="font-size:18px;">⚙️</button>
     </div>
   </header>
 
   <!-- ── MODEL BAR ─────────────────────────────────── -->
   <div style="padding: 8px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
-    <div id="model-bar">
+    <div id="model-bar" style="display:none;">
       <span>🧠</span>
       <select id="model-select"><option>phi3</option></select>
     </div>
-    <div id="backend-bar">
+    <div id="backend-bar" style="display:none;">
       <span>📡</span>
       <select id="backend-select">
         <option value="ollama">🖥️ Ollama</option>
@@ -659,6 +660,14 @@
     restoreConversation();
     // Sync backend UI after detection
     syncBackendUI();
+    // Settings gear toggle
+    document.getElementById('settings-toggle').addEventListener('click', () => {
+      const modelBar = document.getElementById('model-bar');
+      const backendBar = document.getElementById('backend-bar');
+      const visible = modelBar.style.display !== 'none';
+      modelBar.style.display = visible ? 'none' : '';
+      backendBar.style.display = visible ? 'none' : '';
+    });
     // Show Pro banner for free users (unless dismissed)
     if (!VentEngine.isPro && !localStorage.getItem('vent-pro-banner-dismissed')) {
       document.getElementById('pro-banner').classList.add('visible');
